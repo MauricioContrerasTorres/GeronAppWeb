@@ -1,0 +1,100 @@
+﻿@page "/Mantenedores/Region/AddRegion";
+@using Macaner.GeronAppWeb.Client.Web.Models;
+@using Macaner.GeronAppWeb.Service.Interface;
+@using Macaner.GeronAppWeb.Shared.DTO;
+
+@inject IRegionService _regionService;
+@inject NavigationManager navigationManager;
+@inject IJSRuntime jsRuntime;
+
+
+<h3>Agrar una Unidad de Medida</h3>
+
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-7">
+                <h4 class="card-title text-dark">Nueva Región</h4>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <EditForm Model="regionModel" OnValidSubmit="@(()=> Create())">
+            <DataAnnotationsValidator></DataAnnotationsValidator>
+            <ValidationSummary></ValidationSummary>
+            <div class="container">
+                <div class="form-group">
+
+                    <div class="row">
+                        <div class="col-2">
+                            <label>Codigo Región: </label>
+                        </div>
+                        <div class="col-6">
+                            <InputText @bind-Value="regionModel.CodigoRegion" class="form-control" placeholder="Ingresa el código de región"></InputText>
+                            <ValidationMessage For="()=>regionModel.CodigoRegion"></ValidationMessage>
+                        </div>
+                    </div>
+                    <br />
+
+                    <div class="row">
+                        <div class="col-2">
+                            <label>Nombre: </label>
+                        </div>
+                        <div class="col-6">
+                            <InputText @bind-Value="regionModel.Nombre" class="form-control" placeholder="Ingresa el nombre"></InputText>
+                            <ValidationMessage For="()=>regionModel.Nombre"></ValidationMessage>
+                        </div>
+                    </div>
+                    <br />
+
+                    <div class="row">
+                        <div class="col-2">
+                            <button type="submit" class="btn btn-success"><i class="bi bi-gear-fill"></i>&nbsp;Guardar</button>
+                        </div>
+                        <div class="col-6">
+                            <NavLink href="/Mantenedores/Region/IndexRegion" class="btn btn-secondary"><i class="bi bi-arrow-left-circle-fill"></i>&nbsp;Volver Atrás</NavLink>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </EditForm>
+
+    </div>
+
+</div>
+
+<AlertConfirm CambioConfirmacion="Click_ConfirmarCreacion" mensaje="@mensaje"></AlertConfirm>
+
+@code {
+
+    private RegionViewModel regionModel = new RegionViewModel();
+
+    private string mensaje { get; set; } 
+
+    protected async Task Create(){        
+        mensaje = "¿Está seguro de crear la Región?";
+        await jsRuntime.InvokeVoidAsync("ShowAlertConfirm");
+    }
+
+    protected async Task Click_ConfirmarCreacion(bool respuesta){
+
+        if (respuesta) { 
+            RegionDTO _regionDTO = new RegionDTO();
+            _regionDTO.Nombre = regionModel.Nombre;
+            _regionDTO.CodigoRegion = regionModel.CodigoRegion;
+
+            var resultado = await _regionService.CreateAsync(_regionDTO);
+            if (resultado.IsSuccess)
+            {
+                await jsRuntime.InvokeVoidAsync("ShowSuccessAlert", "Creación de la Región Satisfactoria");
+                await jsRuntime.InvokeVoidAsync("HideAlertConfirm");
+                navigationManager.NavigateTo("Mantenedores/Region/IndexRegion");
+                return;
+            }
+
+            await jsRuntime.InvokeVoidAsync("ShowErrorAlert", "Hubo un error en la creación de la Región");
+            await jsRuntime.InvokeVoidAsync("HideAlertConfirm");
+            return;
+        }
+    }
+}

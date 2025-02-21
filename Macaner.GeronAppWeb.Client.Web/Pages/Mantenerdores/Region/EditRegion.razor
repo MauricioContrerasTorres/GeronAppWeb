@@ -1,0 +1,119 @@
+﻿@page "/Mantenedores/Region/EditRegion/{IdRegion:int}";
+@using Macaner.GeronAppWeb.Client.Web.Models;
+@using Macaner.GeronAppWeb.Service.Interface;
+@using Macaner.GeronAppWeb.Shared.DTO;
+
+@inject IRegionService _regionService;
+@inject NavigationManager navigationManager;
+@inject IJSRuntime jsRuntime;
+
+
+<h3>Agrar una Unidad de Medida</h3>
+
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-7">
+                <h4 class="card-title text-dark">Editar una Región</h4>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <EditForm Model="regionModel" OnValidSubmit="@(()=> EditarRegion())">
+            <DataAnnotationsValidator></DataAnnotationsValidator>
+            <ValidationSummary></ValidationSummary>
+            <div class="container">
+                <div class="form-group">
+
+                    <div class="row">
+                        <div class="col-2">
+                            <label>Código Región: </label>
+                        </div>
+                        <div class="col-6">
+                            <InputText @bind-Value="regionModel.CodigoRegion" class="form-control" placeholder="Ingresa el código de la región"></InputText>
+                            <ValidationMessage For="()=>regionModel.CodigoRegion"></ValidationMessage>
+                        </div>
+                    </div>
+                    <br />
+
+                    <div class="row">
+                        <div class="col-2">
+                            <label>Nombre: </label>
+                        </div>
+                        <div class="col-6">
+                            <InputText @bind-Value="regionModel.Nombre" class="form-control" placeholder="Ingresa el nombre"></InputText>
+                            <ValidationMessage For="()=>regionModel.Nombre"></ValidationMessage>
+                        </div>
+                    </div>
+                    <br />
+
+                    <div class="row">
+                        <div class="col-2">
+                            <button type="submit" class="btn btn-success"><i class="bi bi-gear-fill"></i>&nbsp;Guardar</button>
+                        </div>
+                        <div class="col-6">
+                            <NavLink href="/Mantenedores/Region/IndexRegion" class="btn btn-secondary"><i class="bi bi-arrow-left-circle-fill"></i>&nbsp;Volver Atrás</NavLink>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </EditForm>
+
+    </div>
+
+</div>
+
+<AlertConfirm CambioConfirmacion="Click_ConfirmarEdicion" mensaje="@mensaje"></AlertConfirm>
+
+@code {
+
+    [Parameter]
+    public int? IdRegion { get; set; }
+
+    public string mensaje { get; set; }
+
+    private RegionViewModel regionModel = new RegionViewModel();
+    private RegionDTO regionDTO = new RegionDTO();
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        var resultado = await _regionService.GetAsync((int)IdRegion);
+
+        if (resultado.IsSuccess)
+        {
+            regionDTO = resultado.Data;
+
+            regionModel.CodigoRegion = regionDTO.CodigoRegion;
+            regionModel.Nombre = regionDTO.Nombre;
+            regionModel.IdRegion = regionDTO.IdRegion;            
+        }
+    }
+
+    protected async Task EditarRegion()
+    {
+        mensaje = "¿Está seguro de editar la Región?";
+        await jsRuntime.InvokeVoidAsync("ShowAlertConfirm");
+    }
+
+    protected async Task Click_ConfirmarEdicion(){
+        RegionDTO _regionDTO = new RegionDTO();
+        _regionDTO.IdRegion = IdRegion.Value;
+        _regionDTO.Nombre = regionModel.Nombre;
+        _regionDTO.CodigoRegion = regionModel.CodigoRegion;
+
+        var resultado = await _regionService.UpdateAsync(_regionDTO);
+        if (resultado.IsSuccess)
+        {
+            await jsRuntime.InvokeVoidAsync("ShowSuccessAlert", "Edición de la Región Satisfactoria");
+            await jsRuntime.InvokeVoidAsync("HideAlertConfirm");
+            navigationManager.NavigateTo("Mantenedores/Region/IndexRegion");
+
+            return;
+        }
+
+        await jsRuntime.InvokeVoidAsync("ShowErrorAlert", "Hubo un error en la edición de la Región");
+        await jsRuntime.InvokeVoidAsync("HideAlertConfirm");
+        return;
+    }
+}

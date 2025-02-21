@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Blazored.Typeahead" Version="4.7.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.12" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.12" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Macaner.GeronAppWeb.Service.ApiServices\Macaner.GeronAppWeb.Service.ApiServices.csproj" />
+    <ProjectReference Include="..\Macaner.GeronAppWeb.Service.Interface\Macaner.GeronAppWeb.Service.Interface.csproj" />
+    <ProjectReference Include="..\Macaner.GeronAppWeb.Shared.Common\Macaner.GeronAppWeb.Shared.Common.csproj" />
+    <ProjectReference Include="..\Macaner.GeronAppWeb.Shared.DTO\Macaner.GeronAppWeb.Shared.DTO.csproj" />
+    <ProjectReference Include="..\Macaner.GeronAppWeb.Shared.Interface\Macaner.GeronAppWeb.Shared.Interface.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="wwwroot\appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

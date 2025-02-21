@@ -1,0 +1,100 @@
+﻿@page "/Mantenedores/UnidadMedida/AddUnidadMedida";
+@using Macaner.GeronAppWeb.Client.Web.Models;
+@using Macaner.GeronAppWeb.Service.Interface;
+@using Macaner.GeronAppWeb.Shared.DTO;
+
+@inject IUnidadMedidaService _unidadMedidaService;
+@inject NavigationManager navigationManager;
+@inject IJSRuntime jsRuntime;
+
+
+<h3>Agrar una Unidad de Medida</h3>
+
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-7">
+                <h4 class="card-title text-dark">Nueva Unidad de Medida</h4>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <EditForm Model="unidadMedidaModel" OnValidSubmit="@(()=> Create())">
+            <DataAnnotationsValidator></DataAnnotationsValidator>
+            <ValidationSummary></ValidationSummary>
+            <div class="container">
+                <div class="form-group">
+
+                    <div class="row">
+                        <div class="col-2">
+                            <label>Nombre: </label>
+                        </div>
+                        <div class="col-6">
+                            <InputText @bind-Value="unidadMedidaModel.Nombre" class="form-control" placeholder="Ingresa el nombre"></InputText>
+                            <ValidationMessage For="()=>unidadMedidaModel.Nombre"></ValidationMessage>
+                        </div>
+                    </div>
+                    <br />
+
+                    <div class="row">
+                        <div class="col-2">
+                            <label>Descripción: </label>
+                        </div>
+                        <div class="col-6">
+                            <InputText @bind-Value="unidadMedidaModel.Descripcion" class="form-control" placeholder="Ingresa la descripción"></InputText>
+                            <ValidationMessage For="()=>unidadMedidaModel.Descripcion"></ValidationMessage>
+                        </div>
+                    </div>
+                    <br />
+
+                    <div class="row">
+                        <div class="col-2">
+                            <button type="submit" class="btn btn-success"><i class="bi bi-gear-fill"></i>&nbsp;Guardar</button>
+                        </div>
+                        <div class="col-6">
+                            <NavLink href="/Mantenedores/UnidadMedida/IndexUnidadMedida" class="btn btn-secondary"><i class="bi bi-arrow-left-circle-fill"></i>&nbsp;Volver Atrás</NavLink>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </EditForm>
+
+    </div>
+
+</div>
+
+<AlertConfirm CambioConfirmacion="Click_ConfirmarCreacion" mensaje="@mensaje"></AlertConfirm>
+
+@code {
+
+    private UnidadMedidaViewModel unidadMedidaModel = new UnidadMedidaViewModel();
+
+    private string mensaje { get; set; } 
+
+    protected async Task Create(){        
+        mensaje = "¿Está seguro de crear la unidad de medida?";
+        await jsRuntime.InvokeVoidAsync("ShowAlertConfirm");
+    }
+
+    protected async Task Click_ConfirmarCreacion(bool respuesta){
+
+        if (respuesta) { 
+            UnidadMedidaDTO _unidadMedidaDTO = new UnidadMedidaDTO();
+            _unidadMedidaDTO.Nombre = unidadMedidaModel.Nombre;
+            _unidadMedidaDTO.Descripcion = unidadMedidaModel.Descripcion;
+
+            var resultado = await _unidadMedidaService.CreateAsync(_unidadMedidaDTO);
+            if (resultado.IsSuccess)
+            {
+                await jsRuntime.InvokeVoidAsync("ShowSuccessAlert", "Creación de Unidad de Medida Satisfactoria");
+                await jsRuntime.InvokeVoidAsync("HideAlertConfirm");
+                navigationManager.NavigateTo("Mantenedores/UnidadMedida/IndexUnidadMedida");
+                return;
+            }
+
+            await jsRuntime.InvokeVoidAsync("ShowErrorAlert", "Hubo un error en la creación de Unidad de Medida");
+            await jsRuntime.InvokeVoidAsync("HideAlertConfirm");
+            return;
+        }
+    }
+}

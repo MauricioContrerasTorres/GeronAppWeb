@@ -1,0 +1,508 @@
+﻿@page "/Ficha/Paciente/AddPaciente";
+@using Blazored.Typeahead
+@using Macaner.GeronAppWeb.Client.Web.Models;
+@using Macaner.GeronAppWeb.Service.Interface;
+@using Macaner.GeronAppWeb.Shared.DTO;
+@using Macaner.GeronAppWeb.Shared.Interface;
+@using Microsoft.JSInterop;
+
+@inject IPacienteService _pacienteService;
+@inject IComunaService _comunaService;
+@inject IMedicamentoService _medicamentoService;
+@inject IAlergiaService _alergiaService;
+@inject ISexoService _sexoService;
+@inject NavigationManager navigationManager;
+@inject IJSRuntime jsRuntime;
+@inject IHelper _helper;
+
+
+
+<h3>Nuevo Paciente</h3>
+
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-7">
+                <h4 class="card-title text-dark">Nuevo Paciente</h4>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        @if (pacienteModel == null)
+        {
+            <p>Cargando</p>
+        }
+        else
+        {
+            <EditForm Model="pacienteModel" OnValidSubmit="@(()=> Create())">
+                <DataAnnotationsValidator></DataAnnotationsValidator>
+                <ValidationSummary></ValidationSummary>
+                <div class="container">
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-2">
+                                <label>Foto Paciente: </label>
+                            </div>
+                            <div class="col-2">
+                                <video id="video" autoplay playsinline style="width: 100%; max-width: 200px;"></video>
+                                <canvas id="canvas" style="display: none;width: 100%; max-width: 200px;"></canvas>
+                            </div>
+                            <div class="col-2 d-flex flex-column gap-1">
+                                <button type="button" @onclick="IniciarCamara" class="btn btn-primary">Iniciar</button>
+                                <button type="button" @onclick="CapturarFoto" class="btn btn-success" disabled="@isDisabledBtn_CapturarFoto">Capturar</button>
+                                <ValidationMessage For="()=>pacienteModel.Foto"></ValidationMessage>
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="row">
+                            <div class="col-2">
+                                <label>RUT Paciente: </label>
+                            </div>
+                            <div class="col-5">
+                                <InputText @bind-Value="pacienteModel.RUT" class="form-control" placeholder="Ingresa el RUT del paciente" @oninput="e => ValidarRutEnTiempoReal(e, true)"></InputText>
+                                <ValidationMessage For="()=>pacienteModel.RUT"></ValidationMessage>
+                            </div>
+                            <div class="col-1">
+                                <InputText @bind-Value="pacienteModel.DV"  class="form-control" placeholder="Ingresa el DV del paciente" maxlenght="1" @oninput="e=> ValidarRutEnTiempoReal(e,false)"></InputText>
+                                <ValidationMessage For="()=>pacienteModel.DV"></ValidationMessage>
+                            </div>
+                        </div>
+                        @if (!rutValido && pacienteModel.RUT?.Length > 0)
+                        {
+                            <div class="text-danger">RUT inválido</div>
+                        }
+                        <br />
+
+                        <div class="row">
+                            <div class="col-2">
+                                <label>Nombre: </label>
+                            </div>
+                            <div class="col-6">
+                                <InputText @bind-Value="pacienteModel.Nombre" class="form-control" placeholder="Ingresa el nombre de la paciente"></InputText>
+                                <ValidationMessage For="()=>pacienteModel.Nombre"></ValidationMessage>
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="row">
+                            <div class="col-2">
+                                <label>Apellido Paterno: </label>
+                            </div>
+                            <div class="col-6">
+                                <InputText @bind-Value="pacienteModel.ApellidoPaterno" class="form-control" placeholder="Ingresa el apellido paterno del paciente"></InputText>
+                                <ValidationMessage For="()=>pacienteModel.ApellidoPaterno"></ValidationMessage>
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="row">
+                            <div class="col-2">
+                                <label>Apellido Materno: </label>
+                            </div>
+                            <div class="col-6">
+                                <InputText @bind-Value="pacienteModel.ApellidoMaterno" class="form-control" placeholder="Ingresa el apellido materno del paciente"></InputText>
+                                <ValidationMessage For="()=>pacienteModel.ApellidoMaterno"></ValidationMessage>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-2">
+                                <label>Género: </label>
+                            </div>
+                            <div class="col-6">
+                                <BlazoredTypeahead SearchMethod="SearchItemsSexo" @bind-Value="selectedSexo" Context="item" ShowDropDownOnFocus="true" Placeholder="Seleccione un Género">
+                                    <SelectedTemplate>
+                                        @item.Descripcion
+                                    </SelectedTemplate>
+                                    <ResultTemplate>
+                                        @item.Descripcion (@item.Id)
+                                    </ResultTemplate>
+                                </BlazoredTypeahead>
+
+                                <ValidationMessage For="()=>pacienteModel.IdSexo"></ValidationMessage>
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="row">
+                            <div class="col-2">
+                                <label>Fecha Nacimiento: </label>
+                            </div>
+                            <div class="col-6">
+                                <InputDate @bind-Value="pacienteModel.FechaNacimiento" class="form-control" placeholder="Ingresa la fecha de nacimiento del paciente"></InputDate>
+                                <ValidationMessage For="()=>pacienteModel.FechaNacimiento"></ValidationMessage>
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="row">
+                            <div class="col-2">
+                                <label>Edad: </label>
+                            </div>
+                            <div class="col-6">
+                                <InputNumber @bind-Value="pacienteModel.Edad" class="form-control" placeholder="Ingresa la edad del paciente"></InputNumber>
+                                <ValidationMessage For="()=>pacienteModel.Edad"></ValidationMessage>
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="row">
+                            <div class="col-2">
+                                <label>Dirección: </label>
+                            </div>
+                            <div class="col-6">
+                                <InputText @bind-Value="pacienteModel.Direccion" class="form-control" placeholder="Ingresa la dirección del paciente"></InputText>
+                                <ValidationMessage For="()=>pacienteModel.Direccion"></ValidationMessage>
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="row">
+                            <div class="col-2">
+                                <label>Comuna: </label>
+                            </div>
+                            <div class="col-6">
+                                <BlazoredTypeahead SearchMethod="SearchItemsComuna" @bind-Value="selectedComuna" Context="item" ShowDropDownOnFocus="true" Placeholder="Seleccione una comuna">
+                                    <SelectedTemplate>
+                                        @item.Descripcion
+                                    </SelectedTemplate>
+                                    <ResultTemplate>
+                                        @item.Descripcion (@item.Id)
+                                    </ResultTemplate>
+                                </BlazoredTypeahead>
+
+                                <ValidationMessage For="()=>pacienteModel.IdComuna"></ValidationMessage>
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="row">
+                            <div class="col-2">
+                                <label>Telefono Contacto Principal: </label>
+                            </div>
+                            <div class="col-6">
+                                <InputText @bind-Value="pacienteModel.TelefonoContactoPrincipal" class="form-control" placeholder="Ingresa teléfono contacto principal del paciente"></InputText>
+                                <ValidationMessage For="()=>pacienteModel.TelefonoContactoPrincipal"></ValidationMessage>
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="row">
+                            <div class="col-2">
+                                <label>Telefono Contacto Secundario: </label>
+                            </div>
+                            <div class="col-6">
+                                <InputText @bind-Value="pacienteModel.TelefonoContactoSecundario" class="form-control" placeholder="Ingresa teléfono contacto secundario del paciente"></InputText>
+                                <ValidationMessage For="()=>pacienteModel.TelefonoContactoSecundario"></ValidationMessage>
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="row">
+                            <div class="col-2">
+                                <label>Email Contacto Principal: </label>
+                            </div>
+                            <div class="col-6">
+                                <InputText @bind-Value="pacienteModel.EmailContactoPrincipal" class="form-control" placeholder="Ingresa email contacto pricipal del paciente"></InputText>
+                                <ValidationMessage For="()=>pacienteModel.EmailContactoPrincipal"></ValidationMessage>
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="row">
+                            <div class="col-2">
+                                <label>Email Contacto Secundario: </label>
+                            </div>
+                            <div class="col-6">
+                                <InputText @bind-Value="pacienteModel.EmailContactoSecundario" class="form-control" placeholder="Ingresa email contacto secundario del paciente"></InputText>
+                                <ValidationMessage For="()=>pacienteModel.EmailContactoSecundario"></ValidationMessage>
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="row">
+                            <div class="col-2">
+                                <label>Fecha Ingreso: </label>
+                            </div>
+                            <div class="col-6">
+                                <InputDate @bind-Value="pacienteModel.FechaIngreso" class="form-control" placeholder="Ingresa la fecha de ingreso del paciente" ></InputDate>
+                                <ValidationMessage For="()=>pacienteModel.FechaIngreso"></ValidationMessage>
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="row">
+                            <div class="col-2">
+                                <label>Medicamentos Alergicos: </label>
+                            </div>
+                            <div class="col-6">
+                                <BlazoredTypeahead SearchMethod="SearchItemsMedicamentos" @bind-Value="selectedMedicamento" Context="item" ShowDropDownOnFocus="true" Placeholder="Seleccione un medicamento">
+                                    <SelectedTemplate>
+                                        @item.Descripcion
+                                    </SelectedTemplate>
+                                    <ResultTemplate>
+                                        @item.Descripcion (@item.Id)
+                                    </ResultTemplate>
+                                </BlazoredTypeahead>
+                            </div>
+                            <div class="col-2">
+                                <button type="button" class="btn btn-primary" @onclick="AgregarMedicamento">Agregar</button>
+                            </div>
+                        </div>
+
+                        <br />
+
+                        <div class="row">
+                            <div class="col-2">
+                                <label>Seleccionados: </label>
+                            </div>
+                            <div class="col-6">
+                                <ul>
+                                    @foreach (var medicamento in pacienteModel.ListaMedicamentosAlergicosSeleccionados)
+                                    {
+                                        <li>
+                                            @medicamento.Descripcion
+                                            <button type="button" class="btn btn-danger btn-sm" @onclick="() => EliminarMedicamento(medicamento)">X</button>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-2">
+                                <label>Alergias: </label>
+                            </div>
+                            <div class="col-6">
+                                <BlazoredTypeahead SearchMethod="SearchItemsAlergias" @bind-Value="selectedAlergia" Context="item" ShowDropDownOnFocus="true" Placeholder="Seleccione una Alergia">
+                                    <SelectedTemplate>
+                                        @item.Descripcion
+                                    </SelectedTemplate>
+                                    <ResultTemplate>
+                                        @item.Descripcion (@item.Id)
+                                    </ResultTemplate>
+                                </BlazoredTypeahead>
+
+                                @*  <ValidationMessage For="()=>pacienteModel.IdAlergia"></ValidationMessage> *@
+                            </div>
+                            <div class="col-2">
+                                <button type="button" class="btn btn-primary" @onclick="AgregarAlergia">Agregar</button>
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="row">
+                            <div class="col-2">
+                                <label>Seleccionados: </label>
+                            </div>
+                            <div class="col-6">
+                                <ul>
+                                    @foreach (var alergia in pacienteModel.ListaAlergiasSeleccionadas)
+                                    {
+                                        <li>
+                                            @alergia.Descripcion
+                                            <button type="button" class="btn btn-danger btn-sm" @onclick="() => EliminarAlergia(alergia)">X</button>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-2">
+                                <button type="submit" class="btn btn-success"><i class="bi bi-gear-fill"></i>&nbsp;Guardar</button>
+                            </div>
+                            <div class="col-6">
+                                <NavLink href="/Ficha/Paciente/IndexPaciente" class="btn btn-secondary"><i class="bi bi-arrow-left-circle-fill"></i>&nbsp;Volver Atrás</NavLink>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </EditForm>
+        }
+
+
+    </div>
+
+</div>
+
+
+<AlertConfirm CambioConfirmacion="Click_ConfirmarCreacion" mensaje="@mensaje"></AlertConfirm>
+
+@code {
+    private PacienteViewModel pacienteModel;
+    private DropDownDTO selectedMedicamento;
+    private DropDownDTO selectedAlergia;
+    private DropDownDTO selectedComuna;
+    private DropDownDTO selectedSexo;
+
+    private bool rutValido = true;
+
+    private string mensaje { get; set; }
+    private bool isDisabledBtn_CapturarFoto = true;
+
+    protected async Task Create()
+    {
+        if (await ValidarFormulario()){
+            mensaje = "¿Está seguro de crear al paciente?";
+            await jsRuntime.InvokeVoidAsync("ShowAlertConfirm");
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        pacienteModel = new PacienteViewModel(_comunaService,_medicamentoService, _alergiaService, _sexoService);
+       await pacienteModel.InitializeAsync();        
+
+        mensaje = "¿Está seguro de \n crear al paciente?";
+        await jsRuntime.InvokeVoidAsync("ShowAlertConfirm");
+    }
+
+    protected async Task<bool> ValidarFormulario(){
+        var respuesta = true;
+        var mensaje = "Estimado CTM: <br />";
+
+        if (pacienteModel.Foto == null)        
+        {
+            mensaje += "- Falta capturar la foto <br />";
+            respuesta = false;
+        }
+
+        if (!rutValido){
+            mensaje += "- Rut no válido <br />";
+            respuesta = false;
+        }
+
+        await jsRuntime.InvokeVoidAsync("ShowWarningAlert", mensaje);
+        return respuesta;
+    }
+
+    protected async Task Click_ConfirmarCreacion(bool respuesta)
+    {
+
+        if (respuesta)
+        {
+            PacienteDTO _pacienteDTO = new PacienteDTO();            
+            _pacienteDTO.RUT = Convert.ToInt32(pacienteModel.RUT);
+            _pacienteDTO.DV = pacienteModel.DV;
+            _pacienteDTO.Nombre = pacienteModel.Nombre;
+            _pacienteDTO.ApellidoPaterno = pacienteModel.ApellidoPaterno;
+            _pacienteDTO.ApellidoMaterno = pacienteModel.ApellidoMaterno;
+            _pacienteDTO.FechaNacimiento = pacienteModel.FechaNacimiento;
+            _pacienteDTO.Edad = pacienteModel.Edad;
+            _pacienteDTO.Direccion = pacienteModel.Direccion;
+            _pacienteDTO.IdComuna = selectedComuna.Id;            
+            _pacienteDTO.TelefonoContactoPrincipal = pacienteModel.TelefonoContactoPrincipal;
+            _pacienteDTO.TelefonoContactoSecundario = pacienteModel.TelefonoContactoSecundario;
+            _pacienteDTO.EmailContactoPrincipal = pacienteModel.EmailContactoPrincipal;
+            _pacienteDTO.EmailContactoSecundario = pacienteModel.EmailContactoSecundario;
+            _pacienteDTO.FechaIngreso = pacienteModel.FechaIngreso;
+            _pacienteDTO.IdSexo = selectedSexo.Id;
+
+            _pacienteDTO.ListadoAlergias = pacienteModel.ListaAlergiasSeleccionadas.Select(x => x.Id).ToList();
+            _pacienteDTO.ListadoMedicamentosAlergia = pacienteModel.ListaMedicamentosAlergicosSeleccionados.Select(x => x.Id).ToList();
+
+            _pacienteDTO.FotoArchivo = _helper.ConvertirAArchivo(pacienteModel.Foto);
+
+            var resultado = await _pacienteService.CreateAsync(_pacienteDTO);
+            if (resultado.IsSuccess)
+            {
+                await jsRuntime.InvokeVoidAsync("ShowSuccessAlert", "Creación de Paciente Satisfactoria");
+                await jsRuntime.InvokeVoidAsync("HideAlertConfirm");
+                navigationManager.NavigateTo("Ficha/Paciente/IndexPaciente");
+                return;
+            }
+
+            await jsRuntime.InvokeVoidAsync("ShowErrorAlert", "Hubo un error en la creación de Paciente");
+            await jsRuntime.InvokeVoidAsync("HideAlertConfirm");
+            return;
+        }
+    }    
+
+    private async Task<IEnumerable<DropDownDTO>> SearchItemsComuna(string searchText)
+    {
+        return await Task.FromResult(pacienteModel.ListaComunas.Where(x => x.Descripcion.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList());
+    }
+    private async Task<IEnumerable<DropDownDTO>> SearchItemsSexo(string searchText)
+    {
+        return await Task.FromResult(pacienteModel.ListaSexo.Where(x => x.Descripcion.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList());
+    }
+
+    private async Task<IEnumerable<DropDownDTO>> SearchItemsMedicamentos(string searchText)
+    {
+        return await Task.FromResult(pacienteModel.ListaMedicamentosAlergicos.Where(x => x.Descripcion.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList());
+    }
+
+    private async Task<IEnumerable<DropDownDTO>> SearchItemsAlergias(string searchText)
+    {
+        return await Task.FromResult(pacienteModel.ListaAlergias.Where(x => x.Descripcion.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList());
+    }
+
+    private void AgregarMedicamento()
+    {
+        if (selectedMedicamento != null &&
+            !pacienteModel.ListaMedicamentosAlergicosSeleccionados.Any(m => m.Id == selectedMedicamento.Id))
+        {
+            pacienteModel.ListaMedicamentosAlergicosSeleccionados.Add(selectedMedicamento);
+            pacienteModel.ListaMedicamentosAlergicos.Remove(selectedMedicamento);
+            selectedMedicamento = null;
+        }
+    }
+
+    private void EliminarMedicamento(DropDownDTO medicamento)
+    {
+        pacienteModel.ListaMedicamentosAlergicosSeleccionados.Remove(medicamento);
+        pacienteModel.ListaMedicamentosAlergicos.Add(medicamento);
+        pacienteModel.ListaMedicamentosAlergicos = pacienteModel.ListaMedicamentosAlergicos.OrderBy(x => x.Descripcion).ToList();
+    }
+
+    private void AgregarAlergia()
+    {
+        if (selectedAlergia != null &&
+            !pacienteModel.ListaAlergiasSeleccionadas.Any(m => m.Id == selectedAlergia.Id))
+        {
+            pacienteModel.ListaAlergiasSeleccionadas.Add(selectedAlergia);
+            pacienteModel.ListaAlergias.Remove(selectedAlergia);
+            selectedAlergia = null;
+        }
+    }
+
+    private void EliminarAlergia(DropDownDTO alergia)
+    {
+        pacienteModel.ListaAlergiasSeleccionadas.Remove(alergia);
+        pacienteModel.ListaAlergias.Add(alergia);
+        pacienteModel.ListaAlergias = pacienteModel.ListaAlergias.OrderBy(x => x.Descripcion).ToList();
+    }
+
+    private async Task IniciarCamara()
+    {
+
+        await jsRuntime.InvokeVoidAsync("startCamera");
+        isDisabledBtn_CapturarFoto = false;
+
+    }
+
+    private async Task CapturarFoto()
+    {
+        var fotoBase64 = await jsRuntime.InvokeAsync<string>("takePhoto");
+        pacienteModel.Foto = fotoBase64;
+        isDisabledBtn_CapturarFoto = true;
+        StateHasChanged();
+    }
+
+    private async void ValidarRutEnTiempoReal(ChangeEventArgs e, bool esRut)
+    {
+        if (esRut){
+            pacienteModel.RUT = e.Value.ToString();
+        }else{
+            pacienteModel.DV = e.Value.ToString();
+        }
+        
+        var huh  = _helper.EsRutValido(pacienteModel.RUT,pacienteModel.DV);
+        //await jsRuntime.InvokeVoidAsync("alert", $"{pacienteModel.RUT}-{pacienteModel.DV}");
+        rutValido = huh;
+    }
+
+
+}

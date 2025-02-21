@@ -1,0 +1,155 @@
+﻿@page "/Mantenedores/Comuna/IndexComuna";
+@using Macaner.GeronAppWeb.Service.Interface;
+@inject IComunaService _comunaService
+@inject IJSRuntime jsRuntime;
+
+
+@using Macaner.GeronAppWeb.Client.Web.Models;
+@using Macaner.GeronAppWeb.Shared.Common
+@using Macaner.GeronAppWeb.Shared.DTO
+<h3>Unidades de medida</h3>
+
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-7">
+                <h4 class="card-title text-dark">Lista de Unidades de Medidas</h4>
+            </div>
+            <div class="col-2 offset-2">
+                <NavLink href="/Mantenedores/Comuna/AddComuna" class="btn btn-primary"><i class="fas fa-plus" style="color: #ffffff;"></i>&nbsp;Nueva Comuna</NavLink>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="container">
+            <div class="form-group row">
+                <label for="@textoBusqueda" class="col-md-1 col-form-label">Busqueda: </label>
+                <div class="col-md-4">
+                    <input @bind="@textoBusqueda" class="form-control col-md-4" />
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-success" @onclick="@(()=>Buscar())"><i class="fas fa-search"></i>&nbsp;Buscar</button>
+                </div>
+            </div>
+
+            <br />
+
+
+            <div class="row">
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (_listaComunas.Count() > 0)
+                        {
+                            foreach (var comuna in _listaComunas)
+                            {
+                                <tr>
+                                    <td>@comuna.IdComuna</td>
+                                    <td>@comuna.CodigoComuna</td>
+                                    <td>@comuna.Nombre</td>
+                                    <td>
+                                        <NavLink href="@($"/Mantenedores/Comuna/EditComuna/{comuna.IdComuna}")" class="btn btn-warning"><i class="fas fa-edit"></i>&nbsp;Editar</NavLink>
+                                        <button class="btn btn-danger" @onclick="()=>Borrar(comuna.IdComuna)"><i class="fas fa-trash"></i>&nbsp;Borrar</button>
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="4" style="text-align:center">No hay registros</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+    </div>
+
+</div>
+<AlertConfirm CambioConfirmacion="Click_ConfirmarBorrado" mensaje="@mensaje"></AlertConfirm>
+
+@code {
+    private List<ComunaDTO> _listaComunas = new List<ComunaDTO>();
+
+    private string textoBusqueda{ get; set; }
+
+    private bool estaProcesando { get; set; } = false;
+
+    private int? BorrarIdComuna { get; set; } = null;
+
+    private string mensaje { get; set; }
+
+    protected override async Task OnInitializedAsync(){
+
+        var resultado = await _comunaService.GetAllAsync();       
+
+        if (resultado.IsSuccess){
+            _listaComunas = resultado.Data;
+        }
+    }
+
+    // protected override async Task OnAfterRenderAsync(bool firstRender)
+    // {
+    //     await jsRuntime.InvokeVoidAsync("MostrarPregunta");
+    // }
+
+    protected async Task Borrar(int idComuna){
+        BorrarIdComuna = idComuna;
+        mensaje = "¿Está seguro de borrar la unidad de medida?";
+        await jsRuntime.InvokeVoidAsync("ShowAlertConfirm");
+        // var fueBorrado = false;
+        // var resultado = await _comunaService.EliminarComunaAsync(idComuna);
+
+        // if (resultado.IsSuccess)
+        // {
+        //     fueBorrado = resultado.Data;
+        // }
+
+        // if (fueBorrado){
+        //     var response = await _comunaService.GetAllUnidadesMedidasAsync();
+        //     _listaUnidadesMedidas = response.Data;
+        // }else{
+        //     //nones
+        // }
+    }
+
+    protected async Task Buscar(){
+        var resultado = await _comunaService.SearchAsync(textoBusqueda);
+
+        if (resultado.IsSuccess)
+        {
+            _listaComunas = resultado.Data;
+        }
+    }
+
+    protected async Task Click_ConfirmarBorrado(bool confirmado){
+
+        estaProcesando = true;
+        Response<bool> fueBorrado;
+        if (confirmado){
+            fueBorrado = await _comunaService.DeleteAsync(BorrarIdComuna.Value);
+            if (fueBorrado.Data) { 
+                var response = await _comunaService.GetAllAsync();
+                _listaComunas = response.Data;
+                await jsRuntime.InvokeVoidAsync("ShowSuccessAlert", "Eliminación de Comuna Satisfactoria");
+                await jsRuntime.InvokeVoidAsync("HideAlertConfirm");
+            }
+            return;
+        }
+
+        await jsRuntime.InvokeVoidAsync("ShowErrorAlert", "Hubo un error con la eliminación de Comuna");
+        await jsRuntime.InvokeVoidAsync("HideAlertConfirm");
+        estaProcesando = false;
+    }
+}

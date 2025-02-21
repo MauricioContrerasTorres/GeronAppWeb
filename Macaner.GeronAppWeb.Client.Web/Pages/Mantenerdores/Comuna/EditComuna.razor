@@ -1,0 +1,141 @@
+﻿@page "/Mantenedores/Comuna/EditComuna/{IdComuna:int}";
+@using Macaner.GeronAppWeb.Client.Web.Models;
+@using Macaner.GeronAppWeb.Service.Interface;
+@using Macaner.GeronAppWeb.Shared.DTO;
+
+@inject IComunaService _comunaService;
+@inject IRegionService _regionService;
+@inject NavigationManager navigationManager;
+@inject IJSRuntime jsRuntime;
+
+
+<h3>Agrar una Unidad de Medida</h3>
+
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-7">
+                <h4 class="card-title text-dark">Nueva Unidad de Medida</h4>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <EditForm Model="comunaModel" OnValidSubmit="@(()=> EditarComuna())">
+            <DataAnnotationsValidator></DataAnnotationsValidator>
+            <ValidationSummary></ValidationSummary>
+            <div class="container">
+                <div class="form-group">
+
+                    <div class="row">
+                        <div class="col-2">
+                            <label>Código Comuna: </label>
+                        </div>
+                        <div class="col-6">
+                            <InputText @bind-Value="comunaModel.CodigoComuna" class="form-control" placeholder="Ingresa el código de la comuna"></InputText>
+                            <ValidationMessage For="()=>comunaModel.CodigoComuna"></ValidationMessage>
+                        </div>
+                    </div>
+                    <br />
+
+                    <div class="row">
+                        <div class="col-2">
+                            <label>Nombre: </label>
+                        </div>
+                        <div class="col-6">
+                            <InputText @bind-Value="comunaModel.Nombre" class="form-control" placeholder="Ingresa el nombre de la comuna"></InputText>
+                            <ValidationMessage For="()=>comunaModel.Nombre"></ValidationMessage>
+                        </div>
+                    </div>
+                    <br />
+
+                    <div class="row">
+                        <div class="col-2">
+                            <label>Región: </label>
+                        </div>
+                        <div class="col-6">
+                            <InputSelect @bind-Value="comunaModel.IdRegion" class="form-control">
+                                <option value="" selected>-- Selecione una categoría--</option>
+                                @foreach (var region in comunaModel.ListaRegiones)
+                                {
+                                    <option value="@region.Id">@region.Descripcion</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="()=>comunaModel.IdRegion"></ValidationMessage>
+                        </div>
+                    </div>
+                    <br />
+
+                    <div class="row">
+                        <div class="col-2">
+                            <button type="submit" class="btn btn-success"><i class="bi bi-gear-fill"></i>&nbsp;Guardar</button>
+                        </div>
+                        <div class="col-6">
+                            <NavLink href="/Mantenedores/Comuna/IndexComuna" class="btn btn-secondary"><i class="bi bi-arrow-left-circle-fill"></i>&nbsp;Volver Atrás</NavLink>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </EditForm>
+
+    </div>
+
+</div>
+
+<AlertConfirm CambioConfirmacion="Click_ConfirmarEdicion" mensaje="@mensaje"></AlertConfirm>
+
+@code {
+
+    [Parameter]
+    public int? IdComuna { get; set; }
+
+    public string mensaje { get; set; }
+
+    private ComunaViewModel comunaModel;
+    private ComunaDTO comunaDTO = new ComunaDTO();
+
+    protected override async Task OnInitializedAsync()
+    {
+        comunaModel = new ComunaViewModel(_regionService);
+        await comunaModel.InitializeAsync();
+
+        var resultado = await _comunaService.GetAsync((int)IdComuna);
+
+        if (resultado.IsSuccess)
+        {
+            comunaDTO = resultado.Data;
+
+            comunaModel.CodigoComuna = comunaDTO.CodigoComuna;
+            comunaModel.Nombre = comunaDTO.Nombre;
+            comunaModel.IdComuna = IdComuna.Value;
+            comunaModel.IdRegion = comunaDTO.IdRegion;
+        }
+    }
+
+    protected async Task EditarComuna()
+    {
+        mensaje = "¿Está seguro de editar la comuna?";
+        await jsRuntime.InvokeVoidAsync("ShowAlertConfirm");
+    }
+
+    protected async Task Click_ConfirmarEdicion(){
+        ComunaDTO _comunaDTO = new ComunaDTO();
+        _comunaDTO.IdComuna = IdComuna.Value;
+        _comunaDTO.Nombre = comunaModel.Nombre;
+        _comunaDTO.CodigoComuna = comunaModel.CodigoComuna;
+        _comunaDTO.IdRegion = comunaModel.IdRegion;
+
+        var resultado = await _comunaService.UpdateAsync(_comunaDTO);
+        if (resultado.IsSuccess)
+        {
+            await jsRuntime.InvokeVoidAsync("ShowSuccessAlert", "Edición de Comuna Satisfactoria");
+            await jsRuntime.InvokeVoidAsync("HideAlertConfirm");
+            navigationManager.NavigateTo("Mantenedores/Comuna/IndexComuna");
+
+            return;
+        }
+
+        await jsRuntime.InvokeVoidAsync("ShowErrorAlert", "Hubo un error en la edición de Comuna");
+        await jsRuntime.InvokeVoidAsync("HideAlertConfirm");
+        return;
+    }
+}

@@ -1,0 +1,182 @@
+﻿@page "/Ficha/Paciente/IndexPaciente";
+@using Macaner.GeronAppWeb.Service.Interface;
+@inject IPacienteService _pacienteService
+@inject IJSRuntime jsRuntime;
+
+
+@using Macaner.GeronAppWeb.Client.Web.Models;
+@using Macaner.GeronAppWeb.Shared.Common
+@using Macaner.GeronAppWeb.Shared.DTO
+@using Macaner.GeronAppWeb.Shared.DTO.Requests
+
+<h3>Pacientes</h3>
+
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-7">
+                <h4 class="card-title text-dark">Lista de Unidades de Medidas</h4>
+            </div>
+            <div class="col-2 offset-2">
+                <NavLink href="/Ficha/Paciente/AddPaciente" class="btn btn-primary"><i class="fas fa-plus" style="color: #ffffff;"></i>&nbsp;Nuevo Paciente</NavLink>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="container">
+            <div class="form-group row">
+                <label for="@textoBusqueda" class="col-md-1 col-form-label">Busqueda: </label>
+                <div class="col-md-4">
+                    <input @bind="@textoBusqueda" class="form-control col-md-4" />
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-success" @onclick="@(()=>Buscar())"><i class="fas fa-search"></i>&nbsp;Buscar</button>
+                </div>
+            </div>
+
+            <br />
+       
+
+            <div class="row">
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th @onclick="@(()=> OrdenarPor("Id"))" style="cursor:pointer">Id <i class="fa-solid @(columnaOrden == "Id" ? (ordenAscendente ? "fad fa-sort-up" : "fad fa-sort-down") : "fas fa-sort")"></i></th>
+                            <th>RUT</th>
+                            <th @onclick="@(()=> OrdenarPor("Nombre"))" style="cursor:pointer">Nombre <i class="fa-solid @(columnaOrden == "Nombre" ? (ordenAscendente ? "fad fa-sort-up" : "fad fa-sort-down") : "fas fa-sort")"></i></th>
+                            <th @onclick="@(()=> OrdenarPor("ApellidoPaterno"))" style="cursor:pointer">Apellido Paterno <i class="fa-solid @(columnaOrden == "ApellidoPaterno" ? (ordenAscendente ? "fad fa-sort-up" : "fad fa-sort-down") : "fas fa-sort")"></i></th>
+                            <th @onclick="@(()=> OrdenarPor("ApellidoMaterno"))" style="cursor:pointer">Apellido Materno <i class="fa-solid @(columnaOrden == "ApellidoMaterno" ? (ordenAscendente ? "fad fa-sort-up" : "fad fa-sort-down") : "fas fa-sort")"></i></th>
+                            <th>Edad</th>
+                            <th>Sexo</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (_listaPacientes.Count() > 0)
+                        {
+                            foreach (var paciente in _listaPacientes)
+                            {
+                                <tr>
+                                    <td>@paciente.IdPaciente</td>
+                                    <td>@paciente.RUT</td>
+                                    <td>@paciente.Nombre</td>
+                                    <td>@paciente.ApellidoPaterno</td>
+                                    <td>@paciente.ApellidoMaterno</td>
+                                    <th>@paciente.Edad</th>
+                                    <th>@paciente.Sexo</th>
+                                    <td>
+                                        <NavLink href="@($"/Ficha/Paciente/EditPaciente/{paciente.IdPaciente}")" class="btn btn-warning"><i class="fas fa-edit"></i>&nbsp;Editar</NavLink>
+                                        <button class="btn btn-danger" @onclick="()=>Borrar(paciente.IdPaciente)"><i class="fas fa-trash"></i>&nbsp;Borrar</button>
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" style="text-align:center">No hay registros</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+    </div>
+
+</div>
+<AlertConfirm CambioConfirmacion="Click_ConfirmarBorrado" mensaje="@mensaje"></AlertConfirm>
+
+@code {
+
+    private bool ordenAscendente = true;
+    private string columnaOrden = "Id"; 
+
+    private List<ListaPacienteDTO> _listaPacientes = new List<ListaPacienteDTO>();
+    private FiltroPacienteRequestDTO request = new FiltroPacienteRequestDTO();
+
+    private string textoBusqueda { get; set; }
+
+    private bool estaProcesando { get; set; } = false;
+
+    private int? BorrarIdPaciente { get; set; } = null;
+
+    private string mensaje { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        //request = new FiltroPacienteRequestDTO();
+
+        var resultado = await _pacienteService.GetListaPacientesAsync(request);
+
+        if (resultado.IsSuccess)
+        {
+            _listaPacientes = resultado.Data;
+        }
+    }
+
+    protected async Task Borrar(int idPaciente)
+    {
+        BorrarIdPaciente = idPaciente;
+        mensaje = "¿Está seguro de borrar el paciente ?";
+        await jsRuntime.InvokeVoidAsync("ShowAlertConfirm");
+    }
+
+    protected async Task Buscar()
+    {
+        var resultado = await _pacienteService.GetListaPacientesAsync(request);
+
+        if (resultado.IsSuccess)
+        {
+            _listaPacientes = resultado.Data;
+        }
+    }
+
+    protected async Task Click_ConfirmarBorrado(bool confirmado)
+    {
+
+        estaProcesando = true;
+        Response<bool> fueBorrado;
+        if (confirmado)
+        {
+            fueBorrado = await _pacienteService.DeleteAsync(BorrarIdPaciente.Value);
+            if (fueBorrado.Data)
+            {
+                var response = await _pacienteService.GetListaPacientesAsync(request);
+                _listaPacientes = response.Data;
+                await jsRuntime.InvokeVoidAsync("ShowSuccessAlert", "Eliminación de Paciente Satisfactoria");
+                await jsRuntime.InvokeVoidAsync("HideAlertConfirm");
+            }
+            return;
+        }
+
+        await jsRuntime.InvokeVoidAsync("ShowErrorAlert", "Hubo un error con la eliminación de Paciente");
+        await jsRuntime.InvokeVoidAsync("HideAlertConfirm");
+        estaProcesando = false;
+    }
+
+    private void OrdenarPor(string columna)
+    {
+        if (columnaOrden == columna)
+        {
+            ordenAscendente = !ordenAscendente; // Cambiar orden si es la misma columna
+        }
+        else
+        {
+            columnaOrden = columna;
+            ordenAscendente = true; // Orden ascendente por defecto al cambiar de columna
+        }
+
+        // Ordenar la lista según la columna y el orden
+        _listaPacientes = columna switch
+        {
+            "Id" => ordenAscendente ? _listaPacientes.OrderBy(c => c.IdPaciente).ToList() : _listaPacientes.OrderByDescending(c => c.IdPaciente).ToList(),
+            "Nombre" => ordenAscendente ? _listaPacientes.OrderBy(c => c.Nombre).ToList() : _listaPacientes.OrderByDescending(c => c.Nombre).ToList(),
+            "ApellidoPaterno" => ordenAscendente ? _listaPacientes.OrderBy(c => c.ApellidoPaterno).ToList() : _listaPacientes.OrderByDescending(c => c.ApellidoPaterno).ToList(),
+            "ApellidoMaterno" => ordenAscendente ? _listaPacientes.OrderBy(c => c.ApellidoMaterno).ToList() : _listaPacientes.OrderByDescending(c => c.ApellidoMaterno).ToList(),
+            _ => _listaPacientes
+        };
+    }
+}

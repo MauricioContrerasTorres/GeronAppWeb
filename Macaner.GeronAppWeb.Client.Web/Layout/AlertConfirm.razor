@@ -1,0 +1,43 @@
+﻿<div class="modal fade" id="modalAlertConfirm" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Confirmación</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @onclick="()=> ConfirmacionCambio(false)"></button>
+            </div>
+            <div class="modal-body">
+                @mensaje
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @onclick="()=> ConfirmacionCambio(false)">No</button>
+                @* @if(procesoIniciado){
+                    <button type="button" class="btn btn-secondary">Procesando...</button>
+                }else{ *@
+                    <button type="button" class="btn btn-primary" @onclick="()=> ConfirmacionCambio(true)">Si</button>
+               @*  } *@
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    public bool procesoIniciado { get; set; } = false;
+
+    [Parameter]
+    public EventCallback<bool> CambioConfirmacion { get; set; }
+
+    [Parameter]
+    public string mensaje { get; set; }
+
+    protected async Task ConfirmacionCambio(bool respuesta){
+        if (respuesta){
+            procesoIniciado = true;
+            await CambioConfirmacion.InvokeAsync(respuesta);
+        }
+        // else{
+        //     procesoIniciado = false;
+        // }
+    }
+}

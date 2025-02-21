@@ -1,0 +1,175 @@
+﻿@page "/Mantenedores/Comuna/AddComuna";
+@using Blazored.Typeahead
+@using Macaner.GeronAppWeb.Client.Web.Models;
+@using Macaner.GeronAppWeb.Service.Interface;
+@using Macaner.GeronAppWeb.Shared.DTO;
+
+
+@inject IComunaService _comunaService;
+@inject IRegionService _regionService;
+@inject NavigationManager navigationManager;
+@inject IJSRuntime jsRuntime;
+
+
+<h3>Agrar una Unidad de Medida</h3>
+
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-7">
+                <h4 class="card-title text-dark">Nueva Unidad de Medida</h4>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        @if (comunaModel == null) {
+            <p>Cargando</p>
+        }
+        else{
+            <EditForm Model="comunaModel" OnValidSubmit="@(()=> Create())">
+                <DataAnnotationsValidator></DataAnnotationsValidator>
+                <ValidationSummary></ValidationSummary>
+                <div class="container">
+                    <div class="form-group">
+
+                        <div class="row">
+                            <div class="col-2">
+                                <label>Código Comuna: </label>
+                            </div>
+                            <div class="col-6">
+                                <InputText @bind-Value="comunaModel.CodigoComuna" class="form-control" placeholder="Ingresa el código de la comuna"></InputText>
+                                <ValidationMessage For="()=>comunaModel.CodigoComuna"></ValidationMessage>
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="row">
+                            <div class="col-2">
+                                <label>Nombre: </label>
+                            </div>
+                            <div class="col-6">
+                                <InputText @bind-Value="comunaModel.Nombre" class="form-control" placeholder="Ingresa el nombre de la comuna"></InputText>
+                                <ValidationMessage For="()=>comunaModel.Nombre"></ValidationMessage>
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="row">
+                            <div class="col-2">
+                                <label>Región: </label>
+                            </div>
+                            <div class="col-6">
+                                <BlazoredTypeahead SearchMethod="SearchItems" @bind-Value="selectedItem" Context="item" ShowDropDownOnFocus="true" Placeholder="Seleccione una región">
+                                    <SelectedTemplate>
+                                        @item.Descripcion
+                                    </SelectedTemplate>
+                                    <ResultTemplate>
+                                        @item.Descripcion (@item.Id)
+                                    </ResultTemplate>
+                                </BlazoredTypeahead>
+
+                                <ValidationMessage For="()=>comunaModel.IdRegion"></ValidationMessage>
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="row">
+                            <div class="col-2">
+                                <button type="submit" class="btn btn-success"><i class="bi bi-gear-fill"></i>&nbsp;Guardar</button>
+                            </div>
+                            <div class="col-6">
+                                <NavLink href="/Mantenedores/Comuna/IndexComuna" class="btn btn-secondary"><i class="bi bi-arrow-left-circle-fill"></i>&nbsp;Volver Atrás</NavLink>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </EditForm>
+        }
+
+
+    </div>
+
+</div>
+
+
+<AlertConfirm CambioConfirmacion="Click_ConfirmarCreacion" mensaje="@mensaje"></AlertConfirm>
+
+@code {
+    private ComunaViewModel comunaModel;// = new ComunaViewModel(null);
+
+    private DropDownDTO selectedItem;
+
+    private string mensaje { get; set; } 
+
+    protected async Task Create(){        
+        mensaje = "¿Está seguro de crear la comuna?";
+        await jsRuntime.InvokeVoidAsync("ShowAlertConfirm");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        comunaModel = new ComunaViewModel(_regionService);
+        await comunaModel.InitializeAsync();
+        //StateHasChanged();
+    }
+
+    // protected override async Task OnAfterRenderAsync(bool firstRender)
+    // {
+    //     // Solo la primera vez que se renderiza
+    //     if (firstRender)
+    //     {
+    //         // Llamamos a la funcion window.initSelect2();
+    //         await jsRuntime.InvokeVoidAsync("initSelect2","#select-region",);
+    //     }
+    // }
+
+    protected async Task Click_ConfirmarCreacion(bool respuesta){
+
+        if (respuesta) { 
+            ComunaDTO _comunaDTO = new ComunaDTO();
+            _comunaDTO.Nombre = comunaModel.Nombre;
+            _comunaDTO.CodigoComuna = comunaModel.CodigoComuna;
+            _comunaDTO.IdRegion = selectedItem.Id; //comunaModel.IdRegion;
+
+            var resultado = await _comunaService.CreateAsync(_comunaDTO);
+            if (resultado.IsSuccess)
+            {
+                await jsRuntime.InvokeVoidAsync("ShowSuccessAlert", "Creación de Comuna Satisfactoria");
+                await jsRuntime.InvokeVoidAsync("HideAlertConfirm");
+                navigationManager.NavigateTo("Mantenedores/Comuna/IndexComuna");
+                return;
+            }
+
+            await jsRuntime.InvokeVoidAsync("ShowErrorAlert", "Hubo un error en la creación de Comuna");
+            await jsRuntime.InvokeVoidAsync("HideAlertConfirm");
+            return;
+        }
+    }
+
+    // private async Task OnRegionChanged(ChangeEventArgs e)
+    // {
+    //     // Actualiza el modelo con el valor seleccionado
+    //     comunaModel.IdRegion = int.Parse(e.Value.ToString());
+
+    //     // Opcional: Usa JS para mantener Select2 sincronizado (si es necesario)
+    //     //await jsRuntime.InvokeVoidAsync("$('#select-region').val", comunaModel.IdRegion.ToString());
+    // }
+
+    // [JSInvokable]
+    // public static void UpdateRegion(string selectedValue)
+    // {
+    //     if (int.TryParse(selectedValue, out var regionId))
+    //     {
+    //         comunaModel.IdRegion = regionId;
+    //     }
+    // }
+
+    private async Task<IEnumerable<DropDownDTO>> SearchItems(string searchText)
+    {
+        //await Task.Delay(100);
+        // Filtrar los datos según el texto ingresado
+        return await Task.FromResult(comunaModel.ListaRegiones.Where(x => x.Descripcion.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList());
+    }
+
+
+}
