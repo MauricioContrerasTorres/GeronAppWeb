@@ -353,15 +353,12 @@
     protected override async Task OnInitializedAsync()
     {
         pacienteModel = new PacienteViewModel(_comunaService,_medicamentoService, _alergiaService, _sexoService);
-       await pacienteModel.InitializeAsync();        
-
-        mensaje = "¿Está seguro de \n crear al paciente?";
-        await jsRuntime.InvokeVoidAsync("ShowAlertConfirm");
+       await pacienteModel.InitializeAsync();      
     }
 
     protected async Task<bool> ValidarFormulario(){
         var respuesta = true;
-        var mensaje = "Estimado CTM: <br />";
+        var mensaje = "Estimado Usuario: <br />";
 
         if (pacienteModel.Foto == null)        
         {
@@ -374,7 +371,10 @@
             respuesta = false;
         }
 
-        await jsRuntime.InvokeVoidAsync("ShowWarningAlert", mensaje);
+        if (!respuesta){
+            await jsRuntime.InvokeVoidAsync("ShowWarningAlert", mensaje);
+        }
+        
         return respuesta;
     }
 

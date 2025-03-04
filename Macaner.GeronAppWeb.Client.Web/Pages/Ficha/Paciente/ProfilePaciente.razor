@@ -1,5 +1,169 @@
-﻿<h3>ProfilePaciente</h3>
+﻿@page "/Ficha/Paciente/ProfilePaciente/{idPaciente:int}"
 
-@code {
 
+@if(profilePaciente != null){
+    <div class="row">
+        <div class="col-5">
+            <div class="card">
+                <div class="card-header text-center">                                      
+                       <h5 class="card-title text-dark">Datos Personales</h5>                                            
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <canvas id="canvas" style="display: none;width: 100%; max-width: 200px;"></canvas>
+                        </div>
+                        <div class="col-6">
+                            @* <div class="row">
+                                <div class="col-2">
+                                    RUT:
+                                </div>
+                                <div class="col-10">
+                                    @profilePaciente.RUT
+                                </div>
+                            </div> *@
+                            <div class="row">                                
+                                @profilePaciente.Nombre                                
+                            </div>
+                            <div class="row">
+                                @profilePaciente.Edad años                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> 
+
+        <div class="col-4">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h5 class="card-title text-dark">Alergias</h5>                 
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <ul>
+                                @foreach (var alergia in profilePaciente.ListadoAlergiasPaciente)
+                                {
+                                    <li>@alergia.Descripcion</li>
+                                }
+                            </ul>
+                        </div>
+                        <div class="col-6">
+                            <ul>
+                                @foreach (var alergia in profilePaciente.ListadoAlergiasMedicamentosPaciente)
+                                {
+                                    <li>@alergia.Descripcion</li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                    
+                </div>
+
+            </div>
+        </div>
+        <div class="col-3">
+            <div class="card">
+                <div class="card-header text-center">                    
+                    <h5>Signos Vitales</h5>                                            
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="row">
+                            <div class="col-3"><i class="fas fa-ruler-vertical"></i></div>
+                            <div class="col-7">@profilePaciente.Estatura</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-3"><i class="fas fa-weight"></i></div>
+                            <div class="col-7">@profilePaciente.Peso</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-3"><i class="fas fa-stopwatch"></i></div>
+                            <div class="col-7">@profilePaciente.Presion</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-3"><i class="fas fa-tachometer-alt"></i></div>
+                            <div class="col-7">@profilePaciente.IndiceMasa</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-3"><i class="fas fa-heartbeat"></i></div>
+                            <div class="col-7">@profilePaciente.FrecuenciaCardiaca</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-3"><i class="fas fa-thermometer-full"></i></div>
+                            <div class="col-7">@profilePaciente.Temperatura</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+       
+        <div class="card">           
+
+            <div class="card-header">
+                <div class="row">
+                    <div class="col-7">
+                        <h4 class="card-title text-dark">Datos Personales</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                 <div class="row">
+                    <div class="col-4">
+                        
+                        
+                    </div>                    
+                    <div class="col-4"> 
+                        <div class="row">                       
+                            <div class="col-3"><h3>Alergias</h3></div>
+                            
+                            </div>
+                        </div>
+
+                        <div class="col-4">
+                           
+                        </div>
+                    </div> 
+            </div>
+        </div>
+        <br />
+        <h4>Alergias</h4><hr />
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row">
+                            <div class="col-7">
+                                <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                <h4 class="card-title text-dark">Alimentarias</h4>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+                        <div class="card-body">
+                            Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
+                        </div>
+                    </div>
+
+                </div>
+                <br/>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row">
+                            <div class="col-7">
+                                <h4 class="card-title text-dark">Medicinales</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                    </div>
+
+                </div>
+               
+        
+        <p>Botones varios</p>
 }

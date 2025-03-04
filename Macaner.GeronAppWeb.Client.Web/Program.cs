@@ -44,6 +44,7 @@ builder.Services.AddScoped<IUnidadMedidaService, UnidadMedidaService>();
 builder.Services.AddScoped<IConnectionService, ConnectionService>();
 builder.Services.AddScoped<ISenderApi, SenderApi>();
 builder.Services.AddScoped<IHelper, Helper>();
+builder.Services.AddScoped<LoadingService>();
 builder.Services.AddScoped<IRegionService,RegionService>();
 builder.Services.AddScoped<IComunaService, ComunaService>();
 builder.Services.AddScoped<IPacienteService, PacienteService>();

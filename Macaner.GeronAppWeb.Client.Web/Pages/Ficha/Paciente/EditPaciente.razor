@@ -324,6 +324,7 @@
 
 <AlertConfirm CambioConfirmacion="Click_ConfirmarCreacion" mensaje="@mensaje"></AlertConfirm>
 
+
 @code {
 
     [Parameter]
@@ -382,7 +383,7 @@
 
             await ProcesarAlergiasMedicamentosPaciente(IdPaciente.Value);
             await ProcesarAlergiasPaciente(IdPaciente.Value);
-            await MostrarFotoPaciente(pacienteDTO.FotoArchivo);
+            if (pacienteDTO.FotoArchivo != null) await MostrarFotoPaciente(pacienteDTO.FotoArchivo);
 
         }        
     }
@@ -441,7 +442,7 @@
             _pacienteDTO.ListadoAlergias = pacienteModel.ListaAlergiasSeleccionadas.Select(x => x.Id).ToList();
             _pacienteDTO.ListadoMedicamentosAlergia = pacienteModel.ListaMedicamentosAlergicosSeleccionados.Select(x => x.Id).ToList();
 
-            _pacienteDTO.FotoArchivo = _helper.ConvertirAArchivo(pacienteModel.Foto);
+            if (pacienteModel.Foto != null) _pacienteDTO.FotoArchivo = _helper.ConvertirAArchivo(pacienteModel.Foto);
 
             var resultado = await _pacienteService.UpdateAsync(_pacienteDTO);
             if (resultado.IsSuccess)

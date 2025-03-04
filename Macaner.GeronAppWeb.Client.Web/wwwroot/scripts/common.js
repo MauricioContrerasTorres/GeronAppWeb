@@ -9,6 +9,11 @@ function HideAlertConfirm() {
     $('#modalAlertConfirm').modal('hide');
 }
 
+$().ready(function () {
+    $('.card-header').click(function () {
+        $(this).find('i').toggleClass('fas fa-plus fas fa-minus');
+    });
+});
 //function MostrarPregunta() {
 //    iziToast.question({
 //        timeout: 20000,
@@ -260,6 +265,22 @@ function drawImageOnCanvas (canvasId, imageUrl) {
     let canvas = document.getElementById(canvasId);
     let _video = document.getElementById("video");
     _video.style.display = "none";
+    canvas.style.display = "block";
+    if (!canvas) return;
+
+    let ctx = canvas.getContext("2d");
+    let img = new Image();
+    img.onload = function () {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+    };
+    img.src = imageUrl;
+}
+
+function drawImageOnCanvasWithoutVideo(canvasId, imageUrl) {
+    let canvas = document.getElementById(canvasId);
+    
     canvas.style.display = "block";
     if (!canvas) return;
 
