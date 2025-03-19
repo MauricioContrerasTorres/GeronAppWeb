@@ -579,7 +579,7 @@ namespace Macaner.GeronAppWeb.Service.ApiServices
             }
 
             return response;
-        }        
+        }
 
         public async Task<Response<List<AlergiaMedicamentoPacienteDTO>>> GeAlergiasMedicamentosPacientesAsync(int IdPaciente)
         {
@@ -610,7 +610,7 @@ namespace Macaner.GeronAppWeb.Service.ApiServices
 
             return response;
         }
-       
+
 
         #endregion
     }

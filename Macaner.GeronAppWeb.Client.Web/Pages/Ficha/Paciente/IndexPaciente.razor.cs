@@ -1,14 +1,14 @@
 ﻿using Macaner.GeronAppWeb.Client.Web.Layout;
 using Macaner.GeronAppWeb.Shared.Common;
-using Macaner.GeronAppWeb.Service.Interface;
 using Macaner.GeronAppWeb.Shared.DTO.Requests;
 using Macaner.GeronAppWeb.Shared.DTO;
 using Microsoft.JSInterop;
 using Macaner.GeronAppWeb.Service.ApiServices;
 using Microsoft.AspNetCore.Components;
+using Macaner.GeronAppWeb.Service.Interface;
 
 namespace Macaner.GeronAppWeb.Client.Web.Pages.Ficha.Paciente
-{    
+{
     public partial class IndexPaciente
     {
         [Inject] public IPacienteService _pacienteService { get; set; } = default!;

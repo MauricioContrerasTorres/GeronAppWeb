@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Macaner.GeronAppWeb.Service.Interface
 {
-    public  interface IRegionService
+    public interface IRegionService
     {
         #region Metodos sincronicos
         Response<bool> Create(RegionDTO regionDTO);

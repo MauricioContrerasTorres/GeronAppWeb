@@ -145,11 +145,13 @@ namespace Macaner.GeronAppWeb.Service.ApiServices
             return response;
         }
 
-        public List<DropDownDTO> GetDropDown() {
+        public List<DropDownDTO> GetDropDown()
+        {
             List<DropDownDTO> dropDown = new List<DropDownDTO>();
             var lista = GetAll();
 
-            foreach (var item in lista.Data) {
+            foreach (var item in lista.Data)
+            {
                 DropDownDTO linea = new DropDownDTO();
                 linea.Id = item.IdRegion;
                 linea.Descripcion = item.Nombre;

@@ -1,12 +1,14 @@
 using Macaner.GeronAppWeb.Client.Web;
-using Macaner.GeronAppWeb.Service.Interface;
-using Macaner.GeronAppWeb.Service.ApiServices;
 
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Macaner.GeronAppWeb.Shared.Interface;
 using Macaner.GeronAppWeb.Shared.Common;
 using System.Text.Json;
+using Macaner.GeronAppWeb.Service.ApiServices;
+using Macaner.GeronAppWeb.Service.Interface;
+using Macaner.GeronAppWeb.Client.Web.Services;
+using Blazored.LocalStorage;
 
 
 
@@ -52,7 +54,9 @@ builder.Services.AddScoped<IAlergiaService, AlergiaService>();
 builder.Services.AddScoped<IMedicamentoService, MedicamentoService>();
 builder.Services.AddScoped<ISexoService, SexoService>();
 
-
+builder.Services.AddBlazoredLocalStorage(); // Agregar LocalStorage
+builder.Services.AddScoped<AuthService>();  // Servicio de autenticación
+builder.Services.AddScoped<HttpClientService>(); // Cliente HTTP con autenticación
 
 
 await builder.Build().RunAsync();
